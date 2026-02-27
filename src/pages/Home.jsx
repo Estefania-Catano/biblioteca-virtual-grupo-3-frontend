@@ -1,17 +1,16 @@
-import React from 'react'
-
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import './Home.css';
 const Home = () => {
-  return (
-    <main>
-        <nav>
+    return (
+        <main className="home">
             <Navbar />
-        </nav>
-        <section></section>
-        <footer>
-            <Footer />
-        </footer>
-    </main>
-  )
-}
 
-export default Home
+            <section style={{ flex: 1 }}></section>
+
+            <Footer />
+        </main>
+    );
+};
+
+export default Home;
