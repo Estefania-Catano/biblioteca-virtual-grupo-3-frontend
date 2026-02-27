@@ -7,7 +7,7 @@ Aplicación web frontend de una **biblioteca virtual** desarrollada con React y 
 Sistema de biblioteca virtual donde:
 
 - **Usuarios:** pueden registrarse, solicitar libros en préstamo y devolverlos.
-- **Administradores:** pueden gestionar los libros y gestionar los usuarios del sistema.
+- **Administradores:** pueden gestionar los libros (alta, edición, baja) y gestionar los usuarios del sistema.
 
 Este repositorio corresponde al **frontend** del proyecto (interfaz de usuario). Para ejecutar la aplicación completa suele ser necesario un backend asociado.
 
@@ -35,9 +35,8 @@ Las versiones exactas de dependencias se encuentran en `package.json`.
 1. **Clonar el repositorio** (si aún no lo tienes):
 
    ```bash
-   git clone https://github.com/Estefania-Catano/biblioteca-virtual-grupo-3-frontend.git
+   git clone https://github.com/<organizacion>/biblioteca-virtual-grupo-3-frontend.git
    cd biblioteca-virtual-grupo-3-frontend
-   code .
    ```
 
 2. **Instalar dependencias:**
@@ -59,7 +58,6 @@ Las versiones exactas de dependencias se encuentran en `package.json`.
 | Comando        | Descripción                    |
 |----------------|--------------------------------|
 | `npm run dev`  | Inicia el servidor de desarrollo |
-| `npm run open` | Inicia el servidor y abre el navegador |
 | `npm run build`| Genera la versión de producción  |
 | `npm run preview` | Previsualiza la build de producción |
 | `npm run lint` | Ejecuta ESLint en el proyecto     |
@@ -71,8 +69,8 @@ Las versiones exactas de dependencias se encuentran en `package.json`.
 | Cristian Manjarrez | [Manjarrezcristian](https://github.com/Manjarrezcristian) |
 | Carolina Bolívar | [CarolinaBolivar5](https://github.com/CarolinaBolivar5)   |
 | Lorena Mejía     | [Lorenamejiag](https://github.com/Lorenamejiag)           |
-| Esteban Garces   | [EstebanGarcesA](https://github.com/EstebanGarcesA)      |
-| Estefania Cataño | [Estefania-Catano](https://github.com/Estefania-Catano)   |
+| Esteban Garcés   | [EstebanGarcesA](https://github.com/EstebanGarcesA)      |
+| Estefanía Cañaño | [Estefania-Catano](https://github.com/Estefania-Catano)   |
 
 ---
 
