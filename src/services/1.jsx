@@ -1,0 +1,1 @@
+// # Lógica de comunicación con el Backend (vacio por ahora)
