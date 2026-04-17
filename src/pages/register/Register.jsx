@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FaBook } from 'react-icons/fa'
+import Logo from '../../assets/Logo.png'
 import Footer from '../../components/Footer'
 import { end_points } from '../../config/endPoints'
 import { notifyApiResult, showError, showWarning } from '../../helpers/alerts'
@@ -147,7 +147,13 @@ const Register = () => {
       <nav className="navbar navbar-expand-lg border-bottom bg-light">
         <div className="container-fluid">
           <div className="d-flex align-items-center">
-            <FaBook className="me-2 text-info" size={40} aria-hidden />
+            <img
+              src={Logo}
+              alt="Logo"
+              width={70}
+              height={50}
+              className="d-inline-block align-text-top me-2"
+            />
             <span className="navbar-brand mb-0 h1">Biblioteca Virtual</span>
           </div>
           <div className="d-flex gap-2">
