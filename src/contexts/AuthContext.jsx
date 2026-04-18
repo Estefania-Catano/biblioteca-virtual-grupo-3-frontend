@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { cerrarSesion, obtenerSesion, guardarSesion, SESSION_EVENT } from '../helpers/session';
 
 const AuthContext = createContext(null);
 const AUTH_KEY = 'biblioteca-auth';
-const SESSION_KEY = 'biblioteca_sesion_usuario';
 
 const normalizeUser = (rawUser) => {
   if (!rawUser || typeof rawUser !== 'object') {
@@ -19,26 +19,30 @@ const normalizeUser = (rawUser) => {
   return {
     id,
     email,
-    name: typeof rawUser.name === 'string' && rawUser.name ? rawUser.name : fallbackName,
+    name:
+      typeof rawUser.name === 'string' && rawUser.name.trim()
+        ? rawUser.name
+        : fallbackName,
     rolDescripcion:
       typeof rawUser.rolDescripcion === 'string' ? rawUser.rolDescripcion : '',
   };
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    try {
-      const authUser = normalizeUser(JSON.parse(localStorage.getItem(AUTH_KEY)));
-      if (authUser) {
-        return authUser;
-      }
+const readStoredUser = () => {
+  const sessionUser = normalizeUser(obtenerSesion());
+  if (sessionUser) {
+    return sessionUser;
+  }
 
-      const sessionUser = normalizeUser(JSON.parse(localStorage.getItem(SESSION_KEY)));
-      return sessionUser || null;
-    } catch {
-      return null;
-    }
-  });
+  try {
+    return normalizeUser(JSON.parse(localStorage.getItem(AUTH_KEY)));
+  } catch {
+    return null;
+  }
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => readStoredUser());
 
   useEffect(() => {
     if (user) {
@@ -47,6 +51,16 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem(AUTH_KEY);
     }
   }, [user]);
+
+  useEffect(() => {
+    const syncUser = () => setUser(readStoredUser());
+    window.addEventListener('storage', syncUser);
+    window.addEventListener(SESSION_EVENT, syncUser);
+    return () => {
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener(SESSION_EVENT, syncUser);
+    };
+  }, []);
 
   const login = (value) => {
     const nextUser =
@@ -61,11 +75,17 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    guardarSesion({
+      id: nextUser.id,
+      email: nextUser.email,
+      name: nextUser.name,
+      rolDescripcion: nextUser.rolDescripcion,
+    });
     setUser(nextUser);
   };
 
   const logout = () => {
-    localStorage.removeItem(SESSION_KEY);
+    cerrarSesion();
     setUser(null);
   };
 

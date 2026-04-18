@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { fetchBookData } from '../services/bookService';
-import { useAuth } from '../contexts/AuthContext';
-import './Home.css';
-
+import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
+import { fetchBookData } from '../services/bookService'
+import { useAuth } from '../contexts/AuthContext'
+import './Home.css'
 
 const getBookImage = (book) => {
   return (
@@ -18,49 +17,49 @@ const getBookImage = (book) => {
     book.picture ||
     book.portada ||
     null
-  );
-};
+  )
+}
 
 const Home = () => {
-  const { isLogged, login } = useAuth();
-  const [featuredBooks, setFeaturedBooks] = useState([]);
-  const [booksError, setBooksError] = useState(null);
-  const [loadingBooks, setLoadingBooks] = useState(true);
-  const carouselRef = useRef(null);
+  const { isLogged } = useAuth()
+  const [featuredBooks, setFeaturedBooks] = useState([])
+  const [booksError, setBooksError] = useState(null)
+  const [loadingBooks, setLoadingBooks] = useState(true)
+  const carouselRef = useRef(null)
 
   useEffect(() => {
     const loadBooks = async () => {
       try {
-        const books = await fetchBookData();
-        setFeaturedBooks(Array.isArray(books) ? books : []);
-        setBooksError(null);
+        const books = await fetchBookData()
+        setFeaturedBooks(Array.isArray(books) ? books : [])
+        setBooksError(null)
       } catch (error) {
-        console.error(error);
-        setBooksError(error.message || 'No se pudo cargar la base de datos remota.');
+        console.error(error)
+        setBooksError(error.message || 'No se pudo cargar la base de datos remota.')
       } finally {
-        setLoadingBooks(false);
+        setLoadingBooks(false)
       }
-    };
+    }
 
-    setLoadingBooks(true);
-    loadBooks();
-  }, []);
+    setLoadingBooks(true)
+    loadBooks()
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (carouselRef.current) {
-        carouselRef.current.scrollBy({ left: 260, behavior: 'smooth' });
+        carouselRef.current.scrollBy({ left: 260, behavior: 'smooth' })
       }
-    }, 4000);
+    }, 4000)
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval)
+  }, [])
 
   const scrollCarousel = (distance) => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: distance, behavior: 'smooth' });
+      carouselRef.current.scrollBy({ left: distance, behavior: 'smooth' })
     }
-  };
+  }
 
   return (
     <main className="home" id="home">
@@ -77,14 +76,13 @@ const Home = () => {
             </p>
             <div className="hero-actions">
               {!isLogged ? (
-                <>
-                  <Link to="/login" className="btn btn-primary btn-hero">Iniciar sesión</Link>
-                  <button className="btn btn-secondary btn-ghost" onClick={() => login('demo@biblioteca.com')}>
-                    Simular inicio
-                  </button>
-                </>
+                <Link to="/login" className="btn btn-primary btn-hero">
+                  Iniciar sesión
+                </Link>
               ) : (
-                <Link to="/perfil" className="btn btn-primary btn-hero">Ir a perfil</Link>
+                <Link to="/perfil" className="btn btn-primary btn-hero">
+                  Ir a perfil
+                </Link>
               )}
             </div>
           </div>
@@ -129,7 +127,7 @@ const Home = () => {
               <p className="book-error">{booksError}</p>
             ) : (
               featuredBooks.map((book) => {
-                const imageUrl = getBookImage(book);
+                const imageUrl = getBookImage(book)
                 return (
                   <article className="book-card" key={`${book.title}-${book.category}`}>
                     <div className="book-thumb">
@@ -143,7 +141,7 @@ const Home = () => {
                       <h3>{book.title}</h3>
                     </div>
                   </article>
-                );
+                )
               })
             )}
           </div>
@@ -163,16 +161,17 @@ const Home = () => {
             <p>
               Conoce las voces detrás de cada libro y descubre recomendaciones que te acompañarán en cada lectura.
             </p>
-            <Link to="/blog" className="btn btn-primary">Leer más</Link>
+            <Link to="/blog" className="btn btn-primary">
+              Leer más
+            </Link>
           </div>
           <div className="story-artwork"></div>
         </div>
       </section>
 
-
       <Footer />
     </main>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

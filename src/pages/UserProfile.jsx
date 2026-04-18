@@ -5,6 +5,27 @@ import { end_points } from '../config/endPoints'
 import { obtenerSesion, cerrarSesion } from '../helpers/session'
 import './UserProfile.css'
 
+const fallbackLoans = [
+  {
+    libro: 'El principito',
+    fechaPrestamo: '01/04/2026',
+    fechaDevolucion: '15/04/2026',
+    estado: 'Devuelto',
+  },
+  {
+    libro: 'Cien años de soledad',
+    fechaPrestamo: '10/04/2026',
+    fechaDevolucion: '25/04/2026',
+    estado: 'En préstamo',
+  },
+  {
+    libro: '1984',
+    fechaPrestamo: '13/04/2026',
+    fechaDevolucion: '28/04/2026',
+    estado: 'Pendiente',
+  },
+]
+
 const UserProfile = () => {
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
@@ -98,86 +119,148 @@ const UserProfile = () => {
     ? `${profile.nombre} ${profile.apellido ?? ''}`.trim()
     : profile?.firstName
     ? `${profile.firstName} ${profile.lastName ?? ''}`.trim()
-    : profile?.email
+    : profile?.email ?? 'Usuario'
+
+  const initials = nombreCompleto
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((value) => value[0]?.toUpperCase() ?? '')
+    .join('')
+
+  const infoItems = [
+    { label: 'Correo', value: profile?.email ?? session.email ?? '-' },
+    { label: 'Rol', value: profile?.rolDescripcion ?? session.rolDescripcion ?? 'No disponible' },
+    { label: 'Tipo de documento', value: profile?.tipoDocumento ?? profile?.documentType ?? '-' },
+    { label: 'Número de documento', value: profile?.numeroDocumento ?? profile?.documentNumber ?? '-' },
+    { label: 'Nombre', value: profile?.nombre ?? profile?.firstName ?? '-' },
+    { label: 'Apellido', value: profile?.apellido ?? profile?.lastName ?? '-' },
+    { label: 'Dirección', value: profile?.direccion ?? profile?.address ?? '-' },
+    { label: 'Teléfono', value: profile?.telefono ?? profile?.phone ?? '-' },
+  ]
+
+  const statusCards = [
+    { label: 'Sesión', value: profile?.email ?? session.email ?? '-', accent: 'sky' },
+    { label: 'Rol activo', value: profile?.rolDescripcion ?? session.rolDescripcion ?? 'No disponible', accent: 'sun' },
+    { label: 'Estado', value: loading ? 'Cargando...' : 'Activo', accent: 'mint' },
+  ]
 
   return (
-    <div className="perfil-page min-vh-100 d-flex flex-column">
-      <div id="bannerPerfil" className="text-white px-4">
-        <div className="container py-5">
-          <h1>Mi perfil</h1>
-          <p>Revisa tu información de usuario y acceso.</p>
-        </div>
-      </div>
+    <div className="perfil-page">
+      <section className="perfil-hero">
+        <div className="perfil-hero__glow perfil-hero__glow--one"></div>
+        <div className="perfil-hero__glow perfil-hero__glow--two"></div>
 
-      <main className="container py-5 flex-grow-1">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h2>Bienvenido, {nombreCompleto || 'usuario'}</h2>
-            <p className="text-muted mb-0">Rol: {profile?.rolDescripcion ?? 'No disponible'}</p>
-          </div>
-          <div className="d-flex gap-2">
-            <Link to="/" className="btn btn-outline-dark">
-              Inicio
+        <div className="container perfil-hero__content">
+          <div className="perfil-hero__topbar">
+            <Link to="/" className="perfil-link">
+              Volver al inicio
             </Link>
-            <button type="button" className="btn btn-dark" onClick={handleLogout}>
+            <button type="button" className="perfil-btn perfil-btn--ghost" onClick={handleLogout}>
               Cerrar sesión
             </button>
           </div>
+
+          <div className="perfil-hero__grid">
+            <article className="perfil-card perfil-card--identity">
+              <div className="perfil-avatar" aria-hidden="true">
+                <span>{initials || 'U'}</span>
+              </div>
+
+              <div className="perfil-identity__body">
+                <p className="perfil-eyebrow">Perfil de usuario</p>
+                <h1>{nombreCompleto}</h1>
+                <p className="perfil-copy">
+                  Revisa tus datos principales, el estado de tu cuenta y un resumen rápido de tu actividad.
+                </p>
+
+                <div className="perfil-chip-row">
+                  <span className="perfil-chip">{profile?.rolDescripcion ?? session.rolDescripcion ?? 'Sin rol'}</span>
+                  <span className="perfil-chip perfil-chip--soft">
+                    {loading ? 'Actualizando información...' : 'Información sincronizada'}
+                  </span>
+                </div>
+              </div>
+            </article>
+
+            <div className="perfil-status-grid">
+              {statusCards.map((card) => (
+                <article key={card.label} className={`perfil-card perfil-card--status perfil-card--${card.accent}`}>
+                  <p>{card.label}</p>
+                  <strong>{card.value}</strong>
+                </article>
+              ))}
+            </div>
+          </div>
         </div>
+      </section>
 
-        <article className="perfil mb-5">
-          <div className="imagen me-4 mb-4">
-            <img
-              src="https://images.unsplash.com/photo-1573497019438-7a9b3df5ad08?auto=format&fit=crop&w=400&q=80"
-              alt="Foto de perfil"
-            />
-          </div>
-          <div>
-            <h2>Información personal</h2>
-            <div className="informacion d-flex flex-wrap gap-4 mt-4">
-              <ul>
-                <li>ID: {profile?.id ?? '-'}</li>
-                <li>Correo: {profile?.email ?? '-'}</li>
-                <li>Documento: {profile?.tipoDocumento ?? profile?.documentType ?? '-'}</li>
-                <li>Número: {profile?.numeroDocumento ?? profile?.documentNumber ?? '-'}</li>
-              </ul>
-              <ul>
-                <li>Nombre: {profile?.nombre ?? profile?.firstName ?? '-'}</li>
-                <li>Apellido: {profile?.apellido ?? profile?.lastName ?? '-'}</li>
-                <li>Dirección: {profile?.direccion ?? profile?.address ?? '-'}</li>
-                <li>Teléfono: {profile?.telefono ?? profile?.phone ?? '-'}</li>
-              </ul>
+      <main className="container perfil-main">
+        <section className="perfil-layout">
+          <article className="perfil-card perfil-card--details">
+            <div className="perfil-section-header">
+              <div>
+                <p className="perfil-eyebrow">Información personal</p>
+                <h2>Datos del usuario</h2>
+              </div>
+              <span className="perfil-badge">ID {profile?.id ?? '-'}</span>
             </div>
-          </div>
-        </article>
 
-        <section id="informacionUsuario" className="p-4 rounded mb-5 text-white">
-          <div className="row gy-3">
-            <div className="col-md-4">
-              <div className="p-3 bg-white bg-opacity-10 rounded">
-                <h3>Sesión</h3>
-                <p>{profile?.email ?? session.email}</p>
-              </div>
+            <div className="perfil-details-grid">
+              {infoItems.map((item) => (
+                <div key={item.label} className="perfil-detail">
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
             </div>
-            <div className="col-md-4">
-              <div className="p-3 bg-white bg-opacity-10 rounded">
-                <h3>Rol</h3>
-                <p>{profile?.rolDescripcion ?? session.rolDescripcion}</p>
+          </article>
+
+          <aside className="perfil-sidebar">
+            <article className="perfil-card perfil-card--summary">
+              <p className="perfil-eyebrow">Resumen rápido</p>
+              <h3>Tu cuenta en un vistazo</h3>
+              <ul className="perfil-summary-list">
+                <li>
+                  <span>Préstamos recientes</span>
+                  <strong>{fallbackLoans.length}</strong>
+                </li>
+                <li>
+                  <span>Estado de acceso</span>
+                  <strong>{loading ? 'Verificando' : 'Activo'}</strong>
+                </li>
+                <li>
+                  <span>Ruta principal</span>
+                  <strong>{profile?.rolDescripcion?.toUpperCase() === 'ADMIN' ? 'Administración' : 'Usuario'}</strong>
+                </li>
+              </ul>
+            </article>
+
+            <article className="perfil-card perfil-card--actions">
+              <p className="perfil-eyebrow">Acciones</p>
+              <h3>Navegación rápida</h3>
+              <div className="perfil-action-list">
+                <Link to="/" className="perfil-btn perfil-btn--primary">
+                  Ir al inicio
+                </Link>
+                <Link to="/catalog" className="perfil-btn perfil-btn--secondary">
+                  Explorar catálogo
+                </Link>
               </div>
-            </div>
-            <div className="col-md-4">
-              <div className="p-3 bg-white bg-opacity-10 rounded">
-                <h3>Estado</h3>
-                <p>{loading ? 'Cargando...' : 'Activo'}</p>
-              </div>
-            </div>
-          </div>
+            </article>
+          </aside>
         </section>
 
-        <section className="tablePrestamo">
-          <h3 className="mb-3">Préstamos recientes</h3>
-          <div className="table-responsive rounded bg-white shadow-sm p-3">
-            <table className="table table-borderless mb-0">
+        <section className="perfil-card perfil-card--loans">
+          <div className="perfil-section-header">
+            <div>
+              <p className="perfil-eyebrow">Actividad</p>
+              <h2>Préstamos recientes</h2>
+            </div>
+          </div>
+
+          <div className="table-responsive">
+            <table className="table perfil-table mb-0">
               <thead>
                 <tr>
                   <th>Libro</th>
@@ -187,24 +270,22 @@ const UserProfile = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>El principito</td>
-                  <td>01/04/2026</td>
-                  <td>15/04/2026</td>
-                  <td>Devuelto</td>
-                </tr>
-                <tr>
-                  <td>Cien años de soledad</td>
-                  <td>10/04/2026</td>
-                  <td>25/04/2026</td>
-                  <td>En préstamo</td>
-                </tr>
-                <tr>
-                  <td>1984</td>
-                  <td>13/04/2026</td>
-                  <td>28/04/2026</td>
-                  <td>Pendiente</td>
-                </tr>
+                {fallbackLoans.map((loan) => (
+                  <tr key={`${loan.libro}-${loan.fechaPrestamo}`}>
+                    <td>{loan.libro}</td>
+                    <td>{loan.fechaPrestamo}</td>
+                    <td>{loan.fechaDevolucion}</td>
+                    <td>
+                      <span
+                        className={`perfil-status-pill perfil-status-pill--${loan.estado
+                          .toLowerCase()
+                          .replaceAll(' ', '-')}`}
+                      >
+                        {loan.estado}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

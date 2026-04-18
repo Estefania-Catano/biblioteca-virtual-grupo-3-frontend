@@ -1,8 +1,9 @@
 const SESSION_KEY = 'biblioteca_sesion_usuario'
+export const SESSION_EVENT = 'biblioteca-session-changed'
 
 /**
  * Sesión local sin tokens: datos mínimos del usuario tras login.
- * @typedef {{ id: number, email: string, rolDescripcion: string }} SesionUsuario
+ * @typedef {{ id: number, email: string, name?: string, rolDescripcion: string }} SesionUsuario
  */
 
 /** @returns {SesionUsuario | null} */
@@ -21,8 +22,10 @@ export function obtenerSesion() {
 /** @param {SesionUsuario} sesion */
 export function guardarSesion(sesion) {
   localStorage.setItem(SESSION_KEY, JSON.stringify(sesion))
+  window.dispatchEvent(new CustomEvent(SESSION_EVENT, { detail: sesion }))
 }
 
 export function cerrarSesion() {
   localStorage.removeItem(SESSION_KEY)
+  window.dispatchEvent(new CustomEvent(SESSION_EVENT, { detail: null }))
 }

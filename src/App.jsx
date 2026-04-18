@@ -21,30 +21,9 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/catalog"
-          element={
-            <PrivateRoute>
-              <Catalog />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/blog"
-          element={
-            <PrivateRoute>
-              <BlogPage />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/" element={<Home />} />
+        <Route path="/catalog" element={<Catalog />} />
+        <Route path="/blog" element={<BlogPage />} />
         <Route
           path="/perfil"
           element={
@@ -69,14 +48,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/detalle/:id"
-          element={
-            <PrivateRoute>
-              <BookDetail />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/detalle/:id" element={<BookDetail />} />
         <Route
           path="/post/:slug"
           element={
