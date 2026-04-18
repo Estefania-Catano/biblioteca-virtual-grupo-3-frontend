@@ -1,11 +1,40 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const AuthContext = createContext(null);
+const AUTH_KEY = 'biblioteca-auth';
+const SESSION_KEY = 'biblioteca_sesion_usuario';
+
+const normalizeUser = (rawUser) => {
+  if (!rawUser || typeof rawUser !== 'object') {
+    return null;
+  }
+
+  const id = rawUser.id ?? rawUser.email ?? null;
+  const email = typeof rawUser.email === 'string' ? rawUser.email : '';
+  if (!id || !email) {
+    return null;
+  }
+
+  const fallbackName = email.split('@')[0] || 'Usuario';
+  return {
+    id,
+    email,
+    name: typeof rawUser.name === 'string' && rawUser.name ? rawUser.name : fallbackName,
+    rolDescripcion:
+      typeof rawUser.rolDescripcion === 'string' ? rawUser.rolDescripcion : '',
+  };
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('biblioteca-auth')) || null;
+      const authUser = normalizeUser(JSON.parse(localStorage.getItem(AUTH_KEY)));
+      if (authUser) {
+        return authUser;
+      }
+
+      const sessionUser = normalizeUser(JSON.parse(localStorage.getItem(SESSION_KEY)));
+      return sessionUser || null;
     } catch {
       return null;
     }
@@ -13,23 +42,30 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('biblioteca-auth', JSON.stringify(user));
+      localStorage.setItem(AUTH_KEY, JSON.stringify(user));
     } else {
-      localStorage.removeItem('biblioteca-auth');
+      localStorage.removeItem(AUTH_KEY);
     }
   }, [user]);
 
-  const login = (email) => {
-    const userId = email.trim().toLowerCase();
-    const nextUser = {
-      id: userId,
-      email,
-      name: email.split('@')[0] || 'Usuario',
-    };
+  const login = (value) => {
+    const nextUser =
+      typeof value === 'string'
+        ? normalizeUser({
+            id: value.trim().toLowerCase(),
+            email: value,
+          })
+        : normalizeUser(value);
+
+    if (!nextUser) {
+      return;
+    }
+
     setUser(nextUser);
   };
 
   const logout = () => {
+    localStorage.removeItem(SESSION_KEY);
     setUser(null);
   };
 
