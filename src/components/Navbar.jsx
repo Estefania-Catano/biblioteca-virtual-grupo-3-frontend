@@ -1,51 +1,69 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import './navbar.css';
-import Logo from '.././assets/Logo.png';
+import Logo from '../assets/Logo.png';
+import { NavLink } from 'react-router-dom';
 
 const Navbar = () => {
-    return (
+    const [isDarkMode, setIsDarkMode] = useState(
+        () => localStorage.getItem('theme') === 'dark'
+    );
+    const [navOpen, setNavOpen] = useState(false);
 
-        <nav class="navbar navbar-expand-lg">
-            <div class="container-fluid">
-                
-                <div class="d-flex align-items-center">
-                    <img src={Logo} alt="Logo" width="70" height="50"
-                        class="d-inline-block align-text-top me-2" />
-                    <span class="navbar-brand mb-0 h1">Biblioteca Virtual</span>
+    useEffect(() => {
+        document.body.setAttribute('data-bs-theme', isDarkMode ? 'dark' : 'light');
+    }, [isDarkMode]);
+
+    const toggleTheme = () => {
+        const next = !isDarkMode;
+        setIsDarkMode(next);
+        localStorage.setItem('theme', next ? 'dark' : 'light');
+    };
+
+    const closeNav = () => setNavOpen(false);
+
+    return (
+        <nav className="navbar navbar-expand-lg bg-body-tertiary shadow-sm">
+            <div className="container-fluid">
+                <div className="d-flex align-items-center">
+                    <img src={Logo} alt="" width="56" height="40" className="d-inline-block me-2" />
+                    <span className="navbar-brand mb-0 fs-5">Biblioteca Virtual</span>
                 </div>
 
-                 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
-                    aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    onClick={() => setNavOpen((o) => !o)}
+                    aria-expanded={navOpen}
+                    aria-controls="navbarMain"
+                    aria-label="Menú"
+                >
+                    <span className="navbar-toggler-icon" />
                 </button>
 
-               
-                <div class="collapse navbar-collapse justify-content-center" id="navbarNavAltMarkup">
-                    <div class="navbar-nav text-center">
-                        <a class="nav-link active" aria-current="page" href="index.html">Home</a>
-                        <a class="nav-link" href="./public/home/catalog.html">Catalogo</a>
-                        <a class="nav-link" href="public/home/Blog.html">Blog</a>
+                <div
+                    id="navbarMain"
+                    className={`collapse navbar-collapse ${navOpen ? 'show' : ''}`}
+                >
+                    <div className="navbar-nav mx-lg-auto py-2 py-lg-0 text-center">
+                        <NavLink className={({ isActive }) => `nav-link px-3 ${isActive ? 'active fw-bold' : ''}`} to="/" onClick={closeNav}>
+                            Home
+                        </NavLink>
+                        <NavLink className={({ isActive }) => `nav-link px-3 ${isActive ? 'active fw-bold' : ''}`} to="/catalog" onClick={closeNav}>
+                            Catálogo
+                        </NavLink>
+                        <NavLink className={({ isActive }) => `nav-link px-3 ${isActive ? 'active fw-bold' : ''}`} to="/admin/dashboard" onClick={closeNav}>
+                            Admin Panel
+                        </NavLink>
+                    </div>
+                    <div className="d-flex justify-content-center justify-content-lg-end pb-3 pb-lg-0 ms-lg-2">
+                        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={toggleTheme}>
+                            {isDarkMode ? '🌞 Claro' : '🌚 Oscuro'}
+                        </button>
                     </div>
                 </div>
-
-                
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="inicioSesionDropdown"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        Iniciar Sesión
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="inicioSesionDropdown">
-                        <li><a class="dropdown-item" href="./public/home/login.html">Inicio Estudiante</a></li>
-                        <li><a class="dropdown-item" href="./public/admin-interfase/login.html">Inicio Administrador</a>
-                        </li>
-                    </ul>
-                </div>
-
             </div>
         </nav>
+    );
+};
 
-    )
-}
-
-export default Navbar
+export default Navbar;
