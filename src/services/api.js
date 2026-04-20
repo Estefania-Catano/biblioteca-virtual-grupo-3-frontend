@@ -1,64 +1,101 @@
-// src/services/api.js
-// HU07: Abstracción de Red
+/** HU07: URL base y rutas de API centralizadas (sin magic strings en la lógica de fetch) */
+export const BASE_URL = 'https://jsonplaceholder.typicode.com';
 
-// URL Base del Backend. Cámbiala cuando tengas el servidor desplegado.
-const BASE_URL = 'http://localhost:8080/api'; 
-// En caso de que uses otro puerto, modifícalo arriba.
+export const ENDPOINTS = {
+    POSTS: '/posts',
+    USERS: '/users',
+    TODOS: '/todos',
+    ALBUMS: '/albums',
+    COMMENTS: '/comments',
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchJson(path) {
+    const response = await fetch(`${BASE_URL}${path}`);
+    if (!response.ok) throw new Error('Error en la respuesta del servidor');
+    return response.json();
+}
 
 /**
- * Función genérica para realizar llamadas a la API
- * @param {string} endpoint - La ruta a consultar (ej. '/libros', '/auth/login')
- * @param {object} options - Opciones de la petición (method, body, etc)
- * @returns {Promise<any>}
+ * HU07/HU08: resumen del panel — varias peticiones GET usando ENDPOINTS
  */
-export const fetchApi = async (endpoint, options = {}) => {
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-  };
+export async function fetchDashboardStats() {
+    const [posts, users, todos, albums] = await Promise.all([
+        fetchJson(ENDPOINTS.POSTS),
+        fetchJson(ENDPOINTS.USERS),
+        fetchJson(ENDPOINTS.TODOS),
+        fetchJson(ENDPOINTS.ALBUMS),
+    ]);
 
-  // Se puede inyectar el token aquí si ya está guardado en localStorage
-  const token = localStorage.getItem('token');
-  if (token) {
-    defaultHeaders['Authorization'] = `Bearer ${token}`;
-  }
+    const profesores = users.filter((u) => u.id > 5).length;
 
-  const config = {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  };
+    return {
+        totalLibros: posts.length,
+        totalEstudiantes: users.length,
+        totalPrestamos: todos.length,
+        totalCategorias: albums.length,
+        totalProfesores: profesores,
+        totalDevoluciones: todos.filter((t) => t.completed).length,
+    };
+}
 
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
-    const data = await response.json();
+/**
+ * Últimos préstamos: combina todos + posts + users (GET)
+ */
+export async function fetchUltimosPrestamos(limit = 5) {
+    const [todos, posts, users] = await Promise.all([
+        fetchJson(`${ENDPOINTS.TODOS}?_limit=${limit}`),
+        fetchJson(`${ENDPOINTS.POSTS}?_limit=${limit}`),
+        fetchJson(ENDPOINTS.USERS),
+    ]);
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Error en la petición de red');
+    return todos.map((t, i) => {
+        const post = posts[i] || posts[0];
+        const user = users[i % users.length];
+        const dia = String(30 - i).padStart(2, '0');
+        const diaDev = String(15 - i).padStart(2, '0');
+        return {
+            id: t.id,
+            fechaPrestamo: `2025-05-${dia}`,
+            libroTitulo: post?.title?.replace(/\n/g, ' ') ?? 'Libro',
+            estudianteNombre: user?.name ?? 'Estudiante',
+            fechaDevolucion: `2025-06-${diaDev}`,
+            estado: t.completed ? 'Vencido' : 'Activo',
+        };
+    });
+}
+
+export const getLibros = async () => {
+    try {
+        const data = await fetchJson(`${ENDPOINTS.POSTS}?_limit=10`);
+        return data.map((item) => ({
+            id: item.id,
+            titulo: item.title,
+            descripcion: item.body,
+            categoria: 'Ficción',
+            disponible: true,
+        }));
+    } catch (error) {
+        console.error('Hubo un error en GET libros:', error);
+        return [];
     }
-
-    return data;
-  } catch (error) {
-    console.error(`Error en API (${endpoint}):`, error);
-    throw error;
-  }
 };
 
-// --- Endpoints Específicos para Admin (Mocks Iniciales Preparados) ---
-
-export const ApiLibros = {
-  getAll: () => fetchApi('/libros', { method: 'GET' }),
-  create: (bookData) => fetchApi('/libros', { method: 'POST', body: JSON.stringify(bookData) }),
-  // update, delete...
-};
-
-export const ApiUsuarios = {
-  getAll: () => fetchApi('/usuarios', { method: 'GET' }),
-  create: (userData) => fetchApi('/usuarios', { method: 'POST', body: JSON.stringify(userData) }),
-};
-
-export const ApiAutenticacion = {
-  login: (credentials) => fetchApi('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
-  register: (userData) => fetchApi('/auth/register', { method: 'POST', body: JSON.stringify(userData) })
+export const crearLibro = async (nuevoLibro) => {
+    try {
+        await delay(800);
+        const response = await fetch(`${BASE_URL}${ENDPOINTS.POSTS}`, {
+            method: 'POST',
+            body: JSON.stringify(nuevoLibro),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },
+        });
+        if (!response.ok) throw new Error('Fallo al crear recurso');
+        return await response.json();
+    } catch (error) {
+        console.error('Hubo un error en POST libro:', error);
+        throw error;
+    }
 };

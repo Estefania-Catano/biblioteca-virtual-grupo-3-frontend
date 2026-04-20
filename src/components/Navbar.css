@@ -15,5 +15,15 @@
 }
 
 .navbar-nav {
-  font-size: 20px;
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
+}
+
+@media (max-width: 991.98px) {
+  .navbar-brand {
+    font-size: 1.25rem;
+    max-width: calc(100vw - 120px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

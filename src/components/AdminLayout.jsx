@@ -1,65 +1,85 @@
-import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { clearAuthData, getUser } from '../helpers/auth';
-import Swal from 'sweetalert2';
-import './AdminLayout.css'; // Crearemos este archivo para los estilos de la barra lateral
+import React, { useState } from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
+import '../styles/admin/global.css';
+import AdminLogo from '../assets/Logo.png';
 
 const AdminLayout = () => {
-  const navigate = useNavigate();
-  const user = getUser() || { nombre: 'Administrador' };
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const closeSidebar = () => setSidebarOpen(false);
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: '¿Cerrar sesión?',
-      text: 'Se cerrará tu sesión actual',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, salir',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        clearAuthData();
-        navigate('/login');
-      }
-    });
-  };
+    return (
+        <div className={sidebarOpen ? 'wrapper sidebar-open' : 'wrapper'}>
+            {sidebarOpen && (
+                <button
+                    type="button"
+                    className="admin-sidebar-overlay"
+                    aria-label="Cerrar menú"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
 
-  return (
-    <div className="admin-layout-container">
-      {/* Sidebar Lateral */}
-      <aside className="admin-sidebar">
-        <div className="sidebar-header">
-          <h2>Admin Panel</h2>
-          <span className="sidebar-user">Hola, {user.nombre}</span>
+            <aside className="sidebar">
+                <div className="sidebar-header">
+                    <img src={AdminLogo} alt="Logo" className="logo-sidebar" />
+                    Biblioteca
+                </div>
+                <nav className="sidebar-nav">
+                    <div className="sidebar-section-title">PRINCIPAL</div>
+                    <NavLink to="/admin/dashboard" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')} onClick={closeSidebar}>
+                        <i className="fas fa-th-large icon"></i>Dashboard
+                    </NavLink>
+                    <NavLink to="/admin/prestamos" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')} onClick={closeSidebar}>
+                        <i className="fas fa-handshake icon"></i>Préstamos
+                    </NavLink>
+                    <NavLink to="/admin/devoluciones" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')} onClick={closeSidebar}>
+                        <i className="fas fa-undo icon"></i>Devoluciones
+                    </NavLink>
+
+                    <div className="sidebar-section-title mt-3">LIBROS</div>
+                    <NavLink to="/admin/catalogo" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')} onClick={closeSidebar}>
+                        <i className="fas fa-book icon"></i>Libros
+                    </NavLink>
+                    <NavLink to="/admin/categorias" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')} onClick={closeSidebar}>
+                        <i className="fas fa-bookmark icon"></i>Categorías
+                    </NavLink>
+
+                    <div className="sidebar-section-title mt-3">USUARIOS</div>
+                    <NavLink to="/admin/estudiantes" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')} onClick={closeSidebar}>
+                        <i className="fas fa-users icon"></i>Usuarios
+                    </NavLink>
+                </nav>
+            </aside>
+
+            <div className="page-content">
+                <header className="navbar">
+                    <button
+                        type="button"
+                        className="menu-toggle"
+                        aria-label={sidebarOpen ? 'Cerrar menú lateral' : 'Abrir menú lateral'}
+                        aria-expanded={sidebarOpen}
+                        onClick={() => setSidebarOpen((o) => !o)}
+                    >
+                        <i className="fas fa-bars"></i>
+                    </button>
+                    <nav className="navbar-nav">
+                        <span className="nav-link"><i className="fas fa-bell icon-lg text-primary"></i></span>
+                        <span className="nav-link"><i className="fas fa-user-circle icon-lg text-secondary"></i></span>
+                        <span className="nav-link">Admin</span>
+                    </nav>
+                </header>
+
+                <div className="container admin-layout-stack">
+                    <main className="admin-layout-main">
+                        <Outlet />
+                    </main>
+                    <footer className="footer admin-layout-footer">
+                        <p>&copy; Reservados todos los derechos</p>
+                        <p>Designed by <a href="#">BIBLIOTECA VIRTUAL</a></p>
+                    </footer>
+                </div>
+            </div>
         </div>
-        <nav className="sidebar-nav">
-          <NavLink to="/admin/libros" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Libros
-          </NavLink>
-          <NavLink to="/admin/usuarios" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Usuarios
-          </NavLink>
-          <NavLink to="/admin/administradores" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Administradores
-          </NavLink>
-          <NavLink to="/admin/prestamos" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Préstamos
-          </NavLink>
-          <NavLink to="/admin/devoluciones" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            Devoluciones
-          </NavLink>
-        </nav>
-        <div className="sidebar-footer">
-          <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
-        </div>
-      </aside>
-
-      {/* Contenido Principal */}
-      <main className="admin-main-content">
-        <Outlet />
-      </main>
-    </div>
-  );
+    );
 };
 
 export default AdminLayout;

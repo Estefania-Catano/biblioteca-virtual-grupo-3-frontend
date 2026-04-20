@@ -1,10 +1,10 @@
-import React from 'react';
 import { RouterProvider } from 'react-router-dom';
-import { router } from './router/AppRouter';
+import appRouter from './router/AppRouter';
+import './App.css';
 
-const App = () => {
+function App() {
   return (
-    <RouterProvider router={router} />
+    <RouterProvider router={appRouter} />
   );
 }
 

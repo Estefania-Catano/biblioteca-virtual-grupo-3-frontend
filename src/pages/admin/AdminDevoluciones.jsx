@@ -1,47 +1,50 @@
-import React, { useState } from 'react';
-import Swal from 'sweetalert2';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const AdminDevoluciones = () => {
-  const [devolucion, setDevolucion] = useState({ idPrestamo: '', notas: '' });
-
-  const handleChange = (e) => {
-    setDevolucion({ ...devolucion, [e.target.name]: e.target.value });
-  };
-
-  const handleDevolucion = (e) => {
-    e.preventDefault();
-    // Simula lógica de devolución
-    Swal.fire({
-      icon: 'success',
-      title: 'Devolución Registrada',
-      text: `Se ha procesado exitosamente la devolución número: ${devolucion.idPrestamo}`,
-    });
-    setDevolucion({ idPrestamo: '', notas: '' });
-  };
-
-  return (
-    <div className="container-fluid">
-      <h1 className="mb-4">Registro de Devoluciones</h1>
-      <div className="card shadow-sm mx-auto" style={{ maxWidth: '600px' }}>
-        <div className="card-header bg-success text-white">
-          <h5 className="mb-0">Procesar Devolución</h5>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleDevolucion}>
-            <div className="mb-3">
-              <label>ID del Préstamo a Devolver</label>
-              <input type="text" className="form-control" name="idPrestamo" value={devolucion.idPrestamo} onChange={handleChange} required />
+    return (
+        <>
+            <div className="header-content">
+                <div>
+                    <h1>Devoluciones</h1>
+                    <p className="breadcrumb">Home / Principal / Devoluciones</p>
+                </div>
+                <Link to="/admin/registro-devoluciones" className="btn btn-primary">
+                    <i className="fas fa-undo icon-btn"></i>Procesar Devolución
+                </Link>
             </div>
-            <div className="mb-3">
-              <label>Notas o Estado del Libro (Opcional)</label>
-              <textarea className="form-control" name="notas" rows="3" value={devolucion.notas} onChange={handleChange}></textarea>
+
+            <div className="table-container">
+                <div className="table-actions">
+                    <div className="search-input">
+                        <i className="fas fa-search search-icon"></i>
+                        <input type="text" placeholder="Buscar libro devuelto..." />
+                    </div>
+                </div>
+
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>Préstamo ID</th>
+                            <th>Libro</th>
+                            <th>Estudiante</th>
+                            <th>Fecha Devolución</th>
+                            <th>Estado Multas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#9012</td>
+                            <td>El Principito</td>
+                            <td>Carlos Ramirez</td>
+                            <td>12/04/2026</td>
+                            <td><span className="badge bg-success">Sin multas</span></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <button type="submit" className="btn btn-success w-100">Registrar Devolución</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
+        </>
+    );
 };
 
 export default AdminDevoluciones;

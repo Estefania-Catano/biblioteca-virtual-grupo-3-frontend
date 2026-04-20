@@ -1,51 +1,52 @@
-import React, { useState } from 'react';
-import Swal from 'sweetalert2';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const AdminPrestamos = () => {
-  const [prestamo, setPrestamo] = useState({ userId: '', libroId: '', fechaDevolucion: '' });
-
-  const handleChange = (e) => {
-    setPrestamo({ ...prestamo, [e.target.name]: e.target.value });
-  };
-
-  const handlePrestamo = (e) => {
-    e.preventDefault();
-    // Simula lógica de préstamo
-    Swal.fire({
-      icon: 'success',
-      title: 'Préstamo Registrado',
-      text: `Se ha registrado el préstamo del libro ID: ${prestamo.libroId} al usuario ID: ${prestamo.userId}`,
-    });
-    setPrestamo({ userId: '', libroId: '', fechaDevolucion: '' });
-  };
-
-  return (
-    <div className="container-fluid">
-      <h1 className="mb-4">Registro de Préstamos</h1>
-      <div className="card shadow-sm mx-auto" style={{ maxWidth: '600px' }}>
-        <div className="card-header bg-info text-white">
-          <h5 className="mb-0">Nuevo Préstamo</h5>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handlePrestamo}>
-            <div className="mb-3">
-              <label>ID del Usuario</label>
-              <input type="text" className="form-control" name="userId" value={prestamo.userId} onChange={handleChange} required />
+    return (
+        <>
+            <div className="header-content">
+                <div>
+                    <h1>Préstamos</h1>
+                    <p className="breadcrumb">Home / Principal / Préstamos</p>
+                </div>
+                <Link to="/admin/registro-prestamo" className="btn btn-primary">
+                    <i className="fas fa-plus icon-btn"></i>Registrar préstamo
+                </Link>
             </div>
-            <div className="mb-3">
-              <label>ID del Libro</label>
-              <input type="text" className="form-control" name="libroId" value={prestamo.libroId} onChange={handleChange} required />
+
+            <div className="table-container">
+                <div className="table-actions">
+                    <div className="search-input">
+                        <i className="fas fa-search search-icon"></i>
+                        <input type="search" placeholder="Buscar por libro o usuario..." />
+                    </div>
+                </div>
+
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libro</th>
+                            <th>Usuario</th>
+                            <th>Fecha préstamo</th>
+                            <th>Fecha límite</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#P-9012</td>
+                            <td>El Principito</td>
+                            <td>Carlos Ramírez</td>
+                            <td>01/04/2026</td>
+                            <td>15/04/2026</td>
+                            <td><span className="badge bg-success">Activo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div className="mb-3">
-              <label>Fecha Estimada de Devolución</label>
-              <input type="date" className="form-control" name="fechaDevolucion" value={prestamo.fechaDevolucion} onChange={handleChange} required />
-            </div>
-            <button type="submit" className="btn btn-info w-100 text-white">Registrar Préstamo</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
+        </>
+    );
 };
 
 export default AdminPrestamos;
