@@ -126,10 +126,10 @@ const Home = () => {
             ) : booksError ? (
               <p className="book-error">{booksError}</p>
             ) : (
-              featuredBooks.map((book) => {
+              featuredBooks.map((book, index) => {
                 const imageUrl = getBookImage(book)
                 return (
-                  <article className="book-card" key={`${book.title}-${book.category}`}>
+                  <article className="book-card" key={`${book.title}-${book.category}-${index}`}>
                     <div className="book-thumb">
                       {imageUrl ? (
                         <img src={imageUrl} alt={book.title} />

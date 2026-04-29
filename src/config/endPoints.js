@@ -10,4 +10,6 @@ export const end_points = {
   usuarios: withBase('/usuarios'),
   perfiles: withBase('/perfiles'),
   roles: withBase('/roles'),
+  prestamos: withBase('/prestamos'),
+  librosPrestadosPorPerfil: (perfilId) => withBase(`/perfiles/${perfilId}/libros-prestados`),
 }

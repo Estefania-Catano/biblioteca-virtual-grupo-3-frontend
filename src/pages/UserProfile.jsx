@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Footer from '../components/Footer'
 import { end_points } from '../config/endPoints'
@@ -29,8 +29,11 @@ const fallbackLoans = [
 const UserProfile = () => {
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
+  const [loans, setLoans] = useState([])
   const [loading, setLoading] = useState(true)
-  const session = obtenerSesion()
+  const session = useMemo(() => obtenerSesion(), [])
+
+  console.log('UserProfile - Sesión obtenida:', session)
 
   useEffect(() => {
     if (!session) {
@@ -38,20 +41,19 @@ const UserProfile = () => {
       return
     }
 
+    console.log('Sesión actual:', session)
+    console.log('Intentando obtener usuario con ID:', session.id)
+
     let cancelled = false
     const loadProfile = async () => {
       try {
-        const resUsuarios = await fetch(end_points.usuarios)
-        if (!resUsuarios.ok) {
+        const resUsuario = await fetch(`${end_points.usuarios}/${encodeURIComponent(session.id)}`)
+        if (!resUsuario.ok) {
           throw new Error('No se pudo cargar la información del usuario.')
         }
 
-        const usuariosData = await resUsuarios.json()
-        const usuarios = Array.isArray(usuariosData)
-          ? usuariosData
-          : usuariosData?.usuarios ?? usuariosData?.content ?? []
-
-        const currentUser = usuarios.find((item) => item.id === session.id)
+        const currentUser = await resUsuario.json()
+        console.log('Usuario obtenido:', currentUser)
         if (!currentUser) {
           setProfile({
             email: session.email,
@@ -61,7 +63,10 @@ const UserProfile = () => {
         }
 
         const perfilId = currentUser.perfilId ?? currentUser.perfil?.id
+        console.log('Perfil ID obtenido:', perfilId, 'Usuario completo:', currentUser)
+        
         if (!perfilId) {
+          console.warn('No hay perfilId disponible')
           setProfile({
             email: session.email,
             rolDescripcion: session.rolDescripcion,
@@ -72,6 +77,7 @@ const UserProfile = () => {
 
         const resPerfil = await fetch(`${end_points.perfiles}/${perfilId}`)
         if (!resPerfil.ok) {
+          console.warn('Error al obtener perfil:', resPerfil.status)
           setProfile({
             email: session.email,
             rolDescripcion: session.rolDescripcion,
@@ -88,6 +94,39 @@ const UserProfile = () => {
             ...perfilData,
             ...currentUser,
           })
+
+          // Cargar préstamos específicos del perfil
+          try {
+            const urlPrestamos = end_points.librosPrestadosPorPerfil(perfilId)
+            console.log('Cargando préstamos desde:', urlPrestamos)
+            
+            const resPrestamos = await fetch(urlPrestamos)
+            console.log('Respuesta préstamos status:', resPrestamos.status)
+            
+            if (resPrestamos.ok) {
+              const contentType = resPrestamos.headers.get('content-type') ?? ''
+              const prestamosData = contentType.includes('application/json')
+                ? await resPrestamos.json()
+                : null
+              console.log('Datos de préstamos recibidos:', prestamosData)
+              
+              const prestamosArray = Array.isArray(prestamosData)
+                ? prestamosData
+                : prestamosData?.content ?? prestamosData?.prestamos ?? prestamosData?.data ?? []
+              console.log('Array de préstamos:', prestamosArray)
+              
+              if (!cancelled) {
+                setLoans(prestamosArray)
+              }
+            } else {
+              console.warn('Error al obtener préstamos, status:', resPrestamos.status)
+              const errorText = await resPrestamos.text()
+              console.warn('Error detail:', errorText)
+            }
+          } catch (error) {
+            console.warn('Excepción al cargar préstamos:', error)
+            setLoans([])
+          }
         }
       } catch (error) {
         console.error(error)
@@ -98,7 +137,10 @@ const UserProfile = () => {
           })
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+          console.log('loadProfile finished, loading set to false')
+        }
       }
     }
 
@@ -128,6 +170,8 @@ const UserProfile = () => {
     .map((value) => value[0]?.toUpperCase() ?? '')
     .join('')
 
+  console.log('Render values:', { loading, loansLength: loans.length, loans })
+
   const infoItems = [
     { label: 'Correo', value: profile?.email ?? session.email ?? '-' },
     { label: 'Rol', value: profile?.rolDescripcion ?? session.rolDescripcion ?? 'No disponible' },
@@ -144,6 +188,10 @@ const UserProfile = () => {
     { label: 'Rol activo', value: profile?.rolDescripcion ?? session.rolDescripcion ?? 'No disponible', accent: 'sun' },
     { label: 'Estado', value: loading ? 'Cargando...' : 'Activo', accent: 'mint' },
   ]
+
+  useEffect(() => {
+    console.log('Render loans state:', loans.length, loans)
+  }, [loans])
 
   return (
     <div className="perfil-page">
@@ -223,7 +271,7 @@ const UserProfile = () => {
               <ul className="perfil-summary-list">
                 <li>
                   <span>Préstamos recientes</span>
-                  <strong>{fallbackLoans.length}</strong>
+                  <strong>{loans.length}</strong>
                 </li>
                 <li>
                   <span>Estado de acceso</span>
@@ -259,36 +307,46 @@ const UserProfile = () => {
             </div>
           </div>
 
-          <div className="table-responsive">
-            <table className="table perfil-table mb-0">
-              <thead>
-                <tr>
-                  <th>Libro</th>
-                  <th>Fecha préstamo</th>
-                  <th>Fecha devolución</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {fallbackLoans.map((loan) => (
-                  <tr key={`${loan.libro}-${loan.fechaPrestamo}`}>
-                    <td>{loan.libro}</td>
-                    <td>{loan.fechaPrestamo}</td>
-                    <td>{loan.fechaDevolucion}</td>
-                    <td>
-                      <span
-                        className={`perfil-status-pill perfil-status-pill--${loan.estado
-                          .toLowerCase()
-                          .replaceAll(' ', '-')}`}
-                      >
-                        {loan.estado}
-                      </span>
-                    </td>
+          {loans.length > 0 ? (
+            <div className="table-responsive">
+              <table className="table perfil-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Libro</th>
+                    <th>Fecha préstamo</th>
+                    <th>Fecha devolución</th>
+                    <th>Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {loans.map((loan) => (
+                    <tr key={`${loan.id}-${loan.libro?.id || 'no-book'}-${loan.fechaPrestamo}`}>
+                      <td>{loan.libro?.titulo || loan.libro?.nombreLibro || 'Sin título'}</td>
+                      <td>{loan.fechaPrestamo || '-'}</td>
+                      <td>{loan.fechaDevolucion || '-'}</td>
+                      <td>
+                        <span
+                          className={`perfil-status-pill perfil-status-pill--${(loan.estado || 'pendiente')
+                            .toLowerCase()
+                            .replaceAll(' ', '-')}`}
+                        >
+                          {loan.estado || 'Pendiente'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : loading ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+              <p>Cargando préstamos...</p>
+            </div>
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+              <p>No tienes préstamos registrados en el sistema.</p>
+            </div>
+          )}
         </section>
       </main>
 
