@@ -1,5 +1,13 @@
-const GOOGLE_BOOKS_QUERY = import.meta.env.VITE_GOOGLE_BOOKS_QUERY || 'best seller'
+const GOOGLE_BOOKS_QUERY = import.meta.env.VITE_GOOGLE_BOOKS_QUERY || ''
 const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY || ''
+const DIVERSE_QUERIES = [
+  'subject:fiction',
+  'subject:history',
+  'subject:science',
+  'subject:fantasy',
+  'subject:biography',
+  'subject:poetry',
+]
 
 function buildGoogleBooksUrl(query) {
   const params = new URLSearchParams({
@@ -52,6 +60,30 @@ function mapOpenLibraryResponse(data) {
   }))
 }
 
+function shuffleItems(items) {
+  const copy = [...items]
+
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    ;[copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]]
+  }
+
+  return copy
+}
+
+function dedupeBooks(items) {
+  const seen = new Set()
+
+  return items.filter((item) => {
+    const key = `${item.title || ''}-${item.category || ''}-${item.image || ''}`
+
+    if (!key || seen.has(key)) return false
+
+    seen.add(key)
+    return true
+  })
+}
+
 async function fetchJson(url, errorLabel) {
   const response = await fetch(url)
   if (!response.ok) {
@@ -67,6 +99,31 @@ export async function fetchBookData(query) {
   if (customUrl) {
     const data = await fetchJson(customUrl, 'Error al cargar libros')
     return Array.isArray(data.books) ? data.books : []
+  }
+
+  if (!searchQuery) {
+    try {
+      const googleResults = await Promise.all(
+        DIVERSE_QUERIES.map(async (seedQuery) => {
+          const data = await fetchJson(buildGoogleBooksUrl(seedQuery), 'Error al cargar libros')
+          return mapGoogleBooksResponse(data) || []
+        })
+      )
+
+      const mergedGoogleBooks = dedupeBooks(shuffleItems(googleResults.flat())).slice(0, 8)
+      if (mergedGoogleBooks.length > 0) return mergedGoogleBooks
+    } catch (error) {
+      console.warn('Google Books no estuvo disponible para la carga diversa, usando Open Library.', error)
+    }
+
+    const openLibraryResults = await Promise.all(
+      DIVERSE_QUERIES.map(async (seedQuery) => {
+        const data = await fetchJson(buildOpenLibraryUrl(seedQuery), 'Error al cargar libros desde Open Library')
+        return mapOpenLibraryResponse(data) || []
+      })
+    )
+
+    return dedupeBooks(shuffleItems(openLibraryResults.flat())).slice(0, 8)
   }
 
   try {

@@ -9,6 +9,7 @@ export default defineConfig({
       '/usuarios': { target: 'http://localhost:8080', changeOrigin: true },
       '/perfiles': { target: 'http://localhost:8080', changeOrigin: true },
       '/roles': { target: 'http://localhost:8080', changeOrigin: true },
+      '/prestamos': { target: 'http://localhost:8080', changeOrigin: true },
     },
   },
 })

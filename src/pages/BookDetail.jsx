@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
+import { end_points } from '../config/endPoints';
 import './BookDetail.css';
 
 
@@ -103,24 +104,55 @@ const BookDetail = () => {
   }
 
   try {
+    const userResponse = await fetch(
+      `http://localhost:8080/usuarios/${encodeURIComponent(user.id)}`
+    );
+
+    if (!userResponse.ok) {
+      const errorText = await userResponse.text();
+      console.error('Error obteniendo usuario:', errorText);
+      throw new Error('No se pudo obtener el perfil del usuario');
+    }
+
+    const userData = await userResponse.json();
+    const perfilId = userData.perfilId ?? userData.perfil?.id;
+
+    if (!perfilId) {
+      console.error('Usuario sin perfil:', userData);
+      throw new Error('No se encontró el perfil asociado al usuario');
+    }
+
+    const payload = {
+      libro: {
+        nombreLibro: volume.title,
+        googleId: book.id,
+        descripcion: volume.description,
+        thumbnail: volume.imageLinks?.thumbnail
+          ? volume.imageLinks.thumbnail.replace("http://", "https://")
+          : "",
+        autoresTexto: (volume.authors || []).join(", "),
+        // Usar IDs por defecto o crear entidades si no existen
+        autor: { id: 1 }, // ID del autor por defecto
+        categoria: { id: 1 }, // ID de la categoría por defecto
+        estado: { id: 1 } // ID del estado "Disponible" por defecto
+      },
+      perfilId,
+      fechaDevolucion: form.fechaDevolucion
+    };
+    console.log('Enviando reserva:', payload);
+
     const response = await fetch("http://localhost:8080/prestamos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        googleId: book.id,
-        nombreLibro: volume.title,
-        autores: (volume.authors || []).join(", "),
-        thumbnail: volume.imageLinks?.thumbnail
-          ? volume.imageLinks.thumbnail.replace("http://", "https://")
-          : "",
-        descripcion: volume.description,
-        perfilId: 1
-      }),
+      body: JSON.stringify(payload),
     });
 
+    console.log('Respuesta POST prestamos status:', response.status);
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error backend:', errorText);
       throw new Error("Error al guardar préstamo");
     }
 
@@ -129,7 +161,7 @@ const BookDetail = () => {
 
   } catch (error) {
     console.error(error);
-    setFormError("No se pudo crear el préstamo");
+    setFormError(error.message || "No se pudo crear el préstamo");
   }
 };
 
